@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+/* Set the size of the div element that contains the map */
+#map {
+	height: 400px; /* The height is 400 pixels */
+	width: 100%; /* The width is the width of the web page */
+}
+</style>
+</head>
+<body>
+	<h3>My Google Maps Demo</h3>
+	<!--The div element for the map -->
+	<div id="map"></div>
+	<script>
+		// Initialize and add the map
+		function placeMarker(position, map) {
+			var marker = new google.maps.Marker({
+				position : position,
+				map : map
+			});
+			map.panTo(position);
+		}
+
+		function initMap() {
+			// The location of mundocar
+			var mundocar = {
+				lat : -27.598185,
+				lng : -48.620063
+			};
+			// The map, centered at mundocar
+			var map = new google.maps.Map(document.getElementById('map'), {
+				zoom : 4,
+				center : mundocar
+			});
+
+			// The marker, positioned at mundocar
+			map.addListener('click', function(e) {
+				placeMarker(e.latLng, map);
+				console.log(e.latLng.lat() + " " + e.latLng.lng());
+				var ponto = {
+					lng : e.latLng.lng(),
+					lat : e.latLng.lat()
+				};
+				salvaPonto(ponto);
+			});
+
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState == XMLHttpRequest.DONE) {
+					var listaPontos = JSON.parse(xhr.responseText);
+
+					for (var i = 0; i < listaPontos.length; i++) {
+						var ponto = listaPontos[i];
+						var marker = new google.maps.Marker({
+							position : ponto,
+							map : map
+						});
+					}
+
+				}
+			}
+			xhr.open('GET', 'http://localhost:8081/v1.0/maps', true);
+			xhr.send(null);
+		}
+
+		function salvaPonto(ponto) {
+			var xhr = new XMLHttpRequest();
+			var url = "url";
+			xhr.open("POST", 'http://localhost:8081/v1.0/maps', true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState === 4 && xhr.status === 200) {
+					var json = JSON.parse(xhr.responseText);
+					console.log(json.email + ", " + json.password);
+				}
+			};
+			var data = JSON.stringify(ponto);
+			xhr.send(data);
+		}
+	</script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=CHAVE_GOOGLE_MAPS_AQUI&callback=initMap">
+	</script>
+</body>
+</html>
